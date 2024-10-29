@@ -1,12 +1,12 @@
 #pragma once
-
 #include "document.h"
-#include "paginator.h"
 #include "string_processing.h"
 #include <map>
 #include <string>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
+#include <utility>
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
@@ -28,14 +28,14 @@ public:
 
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string& raw_query,
-                                      DocumentPredicate document_predicate) const {
+                                           DocumentPredicate document_predicate) const {
         const auto query = ParseQuery(raw_query);
 
         auto matched_documents = FindAllDocuments(query, document_predicate);
 
         sort(matched_documents.begin(), matched_documents.end(),
              [](const Document& lhs, const Document& rhs) {
-            if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
+            if (std::abs(lhs.relevance - rhs.relevance) < 1e-6) {
                 return lhs.rating > rhs.rating;
             } else {
                 return lhs.relevance > rhs.relevance;
@@ -57,10 +57,7 @@ public:
     int GetDocumentId(int index) const;
 
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string& raw_query,
-                                                        int document_id) const;
-
-    struct QueryWord;
-    struct Query;
+                                                                       int document_id) const;
 
 private:
     struct DocumentData {
@@ -80,7 +77,20 @@ private:
 
     static int ComputeAverageRating(const std::vector<int>& ratings);
 
+    struct QueryWord
+    {
+        std::string data;
+        bool is_minus;
+        bool is_stop;
+    };
+
     QueryWord ParseQueryWord(const std::string& text) const;
+
+    struct Query
+    {
+        std::set<std::string> plus_words;
+        std::set<std::string> minus_words;
+    };
 
     Query ParseQuery(const std::string& text) const;
 
@@ -88,7 +98,7 @@ private:
 
     template <typename DocumentPredicate>
     std::vector<Document> FindAllDocuments(const Query& query,
-                                      DocumentPredicate document_predicate) const {
+                                           DocumentPredicate document_predicate) const {
         std::map<int, double> document_to_relevance;
         for (const std::string& word : query.plus_words) {
             if (word_to_document_freqs_.count(word) == 0) {
@@ -115,7 +125,7 @@ private:
         std::vector<Document> matched_documents;
         for (const auto &[document_id, relevance] : document_to_relevance) {
             matched_documents.push_back(
-                        {document_id, relevance, documents_.at(document_id).rating});
+            {document_id, relevance, documents_.at(document_id).rating});
         }
         return matched_documents;
     }

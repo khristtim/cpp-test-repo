@@ -1,6 +1,7 @@
 #pragma once
 
 #include "document.h"
+#include "request_queue.h"
 
 template <typename Iterator>
 class IteratorRange {
@@ -22,7 +23,6 @@ private:
     Iterator iterator_begin_;
     Iterator iterator_end_;
 };
-
 template <typename Iterator>
 class Paginator {
 public:
@@ -61,10 +61,10 @@ private:
     std::vector<IteratorRange<Iterator>> results_;
 };
 std::ostream& operator<<(std::ostream& output, const Document& document) {
-    output << "{ "s
-           << "document_id = "s << document.id << ", "s
-           << "relevance = "s << document.relevance << ", "s
-           << "rating = "s << document.rating << " }"s;
+    output << "{ "
+           << "document_id = " << document.id << ", "
+           << "relevance = " << document.relevance << ", "
+           << "rating = " << document.rating << " }";
     return output;
 }
 

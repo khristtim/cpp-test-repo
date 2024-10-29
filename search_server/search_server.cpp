@@ -39,7 +39,7 @@
         return document_ids_.at(index);
     }
 
-    std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const string& raw_query,
+    std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query,
                                                         int document_id) const {
         const auto query = ParseQuery(raw_query);
 
@@ -99,13 +99,7 @@
         return rating_sum / static_cast<int>(ratings.size());
     }
 
-    struct QueryWord {
-        std::string data;
-        bool is_minus;
-        bool is_stop;
-    };
-
-    QueryWord SearchServer::ParseQueryWord(const std::string& text) const {
+    SearchServer::QueryWord SearchServer::ParseQueryWord(const std::string& text) const {
         if (text.empty()) {
             throw invalid_argument("Query word is empty"s);
         }
@@ -116,19 +110,14 @@
             word = word.substr(1);
         }
         if (word.empty() || word[0] == '-' || !IsValidWord(word)) {
-            throw invalid_argument("Query word "s + text + " is invalid");
+            throw invalid_argument("Query word "s + text + " is invalid"s);
         }
 
         return {word, is_minus, IsStopWord(word)};
     }
 
-    struct Query {
-        std::set<std::string> plus_words;
-        std::set<std::string> minus_words;
-    };
-
-    Query SearchServer::ParseQuery(const std::string& text) const {
-        Query result;
+    SearchServer::Query SearchServer::ParseQuery(const std::string& text) const {
+        SearchServer::Query result;
         for (const std::string& word : SplitIntoWords(text)) {
             const auto query_word = ParseQueryWord(word);
             if (!query_word.is_stop) {
